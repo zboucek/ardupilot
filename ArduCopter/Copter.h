@@ -1112,6 +1112,21 @@ private:
 
 public:
     void failsafe_check();      // failsafe.cpp
+private:
+    struct ThrNudge {
+        float vz_cms = 0.0f;          // filtered vertical velocity offset [cm/s], positive up
+        uint32_t last_active_ms = 0;
+    };
+    ThrNudge _thr;
+
+    void auto_thr_nudge_update(float dt);
+    
+    AP_Float  g_auto_thr_gain_z;      // gain applied to pilot climb rate [unitless]
+    AP_Int16  g_auto_thr_db;          // unused now (deadband handled in helper), keep for future or remove
+    AP_Float  g_auto_thr_tau;         // filter time constant [s]
+    AP_Int16  g_auto_thr_to;          // timeout [ms]
+    AP_Float  g_auto_thr_vz_max;      // max |vz| [cm/s]
+
 };
 
 extern Copter copter;

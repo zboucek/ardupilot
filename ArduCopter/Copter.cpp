@@ -959,6 +959,41 @@ bool Copter::get_rate_ef_targets(Vector3f& rate_ef_targets) const
     return true;
 }
 
+// Update function called from AUTO loop every iteration
+// This function is responsible for updating the ThrNudge state machine
+// which is used to modify the throttle input to the vehicle based on the
+// pilot's stick input. The ThrNudge algorithm is designed to apply a
+// "nudge" to the throttle input to help the pilot control the vehicle's
+// vertical velocity while in auto mode.
+// Copter.cpp
+void Copter::auto_thr_nudge_update(float dt)
+{
+    // Pilot desired climb rate in m/s → convert to cm/s
+    const float pilot_vz_ms  = get_pilot_desired_climb_rate_ms(); // [+up/-down], m/s
+    const float pilot_vz_cms = pilot_vz_ms * 100.0f;              // cm/s
+
+    const bool active = fabsf(pilot_vz_cms) > 1.0f;               // >1 cm/s = active
+
+    // Gain and saturation in cm/s
+    float vz_cmd_cms = pilot_vz_cms * g_auto_thr_gain_z.get();    // unitless gain
+    const float vz_lim = fabsf(g_auto_thr_vz_max.get());          // cm/s
+    vz_cmd_cms = constrain_float(vz_cmd_cms, -vz_lim, vz_lim);
+
+    // 1st-order filter
+    const float alpha = constrain_float(dt / (g_auto_thr_tau.get() + dt), 0.0f, 1.0f);
+    _thr.vz_cms = _thr.vz_cms + alpha * (vz_cmd_cms - _thr.vz_cms);
+
+    // Timeout decay
+    if (active) {
+        _thr.last_active_ms = millis();
+    } else if (millis() - _thr.last_active_ms > (uint32_t)g_auto_thr_to.get()) {
+        _thr.vz_cms *= 0.9f;
+        if (fabsf(_thr.vz_cms) < 1.0f) {
+            _thr.vz_cms = 0.0f;
+        }
+    }
+}
+
 /*
   constructor for main Copter class
  */

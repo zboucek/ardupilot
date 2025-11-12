@@ -1129,6 +1129,11 @@ const AP_Param::GroupInfo ParametersG2::var_info[] = {
  */
 const AP_Param::GroupInfo ParametersG2::var_info2[] = {
 
+    AP_GROUPINFO("AUTO_THR_GAIN_Z", 198, Copter, g_auto_thr_gain_z, 1.0f),
+    AP_GROUPINFO("AUTO_THR_TAU",    199, Copter, g_auto_thr_tau,    0.3f),
+    AP_GROUPINFO("AUTO_THR_TO",     200, Copter, g_auto_thr_to,     800),
+    AP_GROUPINFO("AUTO_THR_VZ_MAX", 201, Copter, g_auto_thr_vz_max, 200.0f), // cm/s ~ 2.0 m/s
+
     // @Param: PLDP_THRESH
     // @DisplayName: Payload Place thrust ratio threshold
     // @Description: Ratio of vertical thrust during decent below which payload touchdown will trigger.
